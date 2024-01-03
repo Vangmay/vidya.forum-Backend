@@ -30,6 +30,6 @@ func NewConnection(config *Config) {
 	}
 
 	DB = db
-	db.AutoMigrate(&models.User{}, &models.Post{}, &models.Comment{}, &models.Note{}, &models.Tag{})
+	db.AutoMigrate(&models.User{}, &models.Post{}, &models.Comment{})
 
 }

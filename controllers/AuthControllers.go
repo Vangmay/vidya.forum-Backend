@@ -14,7 +14,7 @@ import (
 )
 
 type EditRequest struct {
-	Username        string `json:"username"`
+	UserName        string `json:"username"`
 	Email           string `json:"email"`
 	Profile_picture string `json: "profilePic"`
 	Bio             string `json: "bio"`
@@ -24,6 +24,12 @@ const SECRETKEY = "secret"
 
 func Register(c *fiber.Ctx) error {
 	var data map[string]string
+
+	// {
+	// 	"username" :
+	// 	"email" :
+	// 	"password"
+	// } THIS SHOULD BE THE BODY INPUT
 
 	err := c.BodyParser(&data)
 
@@ -46,12 +52,11 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	user := models.User{
-		Username:           data["username"],
-		Email:              data["email"],
-		Encrypted_password: password,
-		Profile_picture:    "",
-		Bio:                "",
-		IsAdmin:            false,
+		UserName: data["username"],
+		Email:    data["email"],
+		Password: password,
+
+		IsAdmin: false,
 	}
 
 	database.DB.Create(&user)
@@ -59,6 +64,12 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
+	// Body of login request
+	// {
+	// 	"email" :
+	// 	"password" :
+	// }
+
 	var data map[string]string
 
 	err := c.BodyParser(&data)
@@ -71,14 +82,14 @@ func Login(c *fiber.Ctx) error {
 
 	database.DB.Where("email = ?", data["email"]).First(&user)
 
-	if user.ID == 0 {
+	if user.Id == 0 {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
 			"message": "User not found",
 		})
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Encrypted_password, []byte(data["password"])); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
 			"message": "incorrect password",
@@ -88,7 +99,7 @@ func Login(c *fiber.Ctx) error {
 	// We can proceed forward and assign a few claims
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(user.ID)),
+		Issuer:    strconv.Itoa(int(user.Id)),
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 	})
 
@@ -176,10 +187,7 @@ func Edit(c *fiber.Ctx) error {
 
 	database.DB.Where("id = ?", id).First(&user)
 
-	user.Username = edits.Username
-	user.Bio = edits.Bio
-	user.Profile_picture = edits.Profile_picture
-
+	user.UserName = edits.UserName
 	database.DB.Save(&user)
 
 	c.JSON(user)

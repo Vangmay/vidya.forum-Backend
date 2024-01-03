@@ -8,16 +8,30 @@ import (
 func Setup(app *fiber.App) {
 
 	// Authorization and Accounts Endpoints
-	app.Get("/Auth/user/:id", controllers.GetUserById)
+	app.Get("/Auth/users/:id", controllers.GetUserById)
 	app.Get("/Auth/users", controllers.GetUsers)
+	app.Get("/Auth/user", controllers.User)
 	app.Post("/Auth/register", controllers.Register)
 	app.Post("/Auth/login", controllers.Login)
-	app.Get("/Auth/user", controllers.User)
 	app.Post("/Auth/logout", controllers.Logout)
 	app.Delete("/Auth/delete", controllers.Delete)
 	app.Patch("/Auth/Edit/:id", controllers.Edit)
 
 	// Post and Comment Endpoints
+	// GetPosts
+	// CreatePosts
+	// EditPosts [OP]
+	// DeletePosts [OP]
+	app.Get("/posts", controllers.GetAllPosts)
+	app.Get("/post/:id", controllers.GetPostById)
+	app.Post("/posts/create", controllers.CreatePost)
+	app.Patch("/posts/edit/:id", controllers.EditPost)
+	app.Delete("/posts/:id", controllers.DeletePost)
 
-	// Tags endpoints
+	app.Get("/comment/:id", controllers.GetCommentByPost)
+	app.Get("/comment/:commentId", controllers.GetCommentById)
+	app.Post("/comment/create/:postId", controllers.CreateComment)
+	app.Patch("/comment/update/:commentId", controllers.EditComment)
+	app.Delete("/comment/delete", controllers.DeleteComment)
+
 }
