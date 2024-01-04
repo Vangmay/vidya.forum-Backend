@@ -49,6 +49,14 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
+	database.DB.Where("user_name = ?", data["username"]).First(&tempUser)
+	if tempUser.UserName == data["username"] {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "A user has already registered using this username",
+		})
+	}
+
 	user := models.User{
 		UserName: data["username"],
 		Email:    data["email"],
