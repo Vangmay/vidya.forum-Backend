@@ -1,10 +1,10 @@
-- Username is unique, add uniquiness check in controllers.register
+- Username is unique, add uniquiness check in controllers.register (DONE)
 
-- Patch should receive user ID internally instead of as a URL parameter for security reasons, for edit user functionality
+- Patch should receive user ID internally instead of as a URL parameter for security reasons, for edit user functionality (DONE)
 
-- Add ability to edit password for user, mabye give them a secret randomly generated code for super authentication
+- Add ability to edit password for user, mabye give them a secret randomly generated code for super authentication (DONE)
 
-- Email is not getting updated // Patched
+- Email is not getting updated (DONE)
 
 - When sending get request to get all posts, every post is not getting preloaded with the comments, that can be a problem. Also change it so that id is in descending order so latest posts are visible first. Fix it in controllers.GetAllPosts.
 

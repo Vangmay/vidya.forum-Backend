@@ -8,6 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/vangmay/cvwo-backend/controllers"
 	"github.com/vangmay/cvwo-backend/database"
 	"github.com/vangmay/cvwo-backend/models"
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +17,7 @@ import (
 type EditRequest struct {
 	UserName string `json:"username"`
 	Email    string `json:"email"`
+	Password string `json: "password"`
 }
 
 const SECRETKEY = "secret"
@@ -182,22 +184,22 @@ func Edit(c *fiber.Ctx) error {
 	err := c.BodyParser(&edits)
 	fmt.Println(err)
 
+	userId := controllers.GetCurrentUserId(c)
+	userProfile := models.User{}
+	database.DB.Where("id = ?", userId).First(&userProfile)
+
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"message": "Could not update user",
 		})
 	}
+	newPassword, _ := bcrypt.GenerateFromPassword([]byte(edits.Password), 14)
+	userProfile.UserName = edits.UserName
+	userProfile.Email = edits.Email
+	userProfile.Password = newPassword
+	database.DB.Save(&userProfile)
 
-	user := models.User{}
-	id := c.Params("id")
-
-	database.DB.Where("id = ?", id).First(&user)
-
-	user.UserName = edits.UserName
-	user.Email = edits.Email
-	database.DB.Save(&user)
-
-	c.JSON(user)
+	c.JSON(userProfile)
 	return nil
 }
 
