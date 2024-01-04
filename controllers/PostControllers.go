@@ -22,7 +22,7 @@ func GetCurrentUserId(c *fiber.Ctx) string {
 func GetAllPosts(c *fiber.Ctx) error {
 	posts := &[]models.Post{}
 
-	err := database.DB.Find(posts).Error
+	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(posts).Error
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "could not get the books"})
@@ -42,11 +42,12 @@ func GetPostById(c *fiber.Ctx) error {
 		})
 		return nil
 	}
-	err := database.DB.Where("id = ?", id).First(post).Error
+
+	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&post).Error
 
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(
-			&fiber.Map{"Message ": "Could not get the book"})
+			&fiber.Map{"Message ": "Could not get the post"})
 		return err
 	}
 	c.Status(http.StatusOK).JSON(post)
@@ -54,24 +55,26 @@ func GetPostById(c *fiber.Ctx) error {
 }
 
 func CreatePost(c *fiber.Ctx) error {
+	database.DB.Debug()
 	userId := GetCurrentUserId(c)
-
 	author := models.User{}
-	database.DB.Where("id = ?", userId).First(&author)
-
-	newPost := models.Post{}
-	err := c.BodyParser(&newPost)
+	err := database.DB.Where("id = ?", userId).First(&author).Error
 	if err != nil {
 		return c.JSON(fiber.Map{
-			"message": "error creating post",
+			"message": "Cannot fetch post",
 		})
 	}
+
+	newPost := models.Post{}
+
+	c.BodyParser(&newPost)
 
 	newPost.UserId = author.Id
 
 	newPost.User = author
 
-	database.DB.Create(&newPost)
+	database.DB.Preload("users").Create(&newPost)
+
 	return c.JSON(newPost)
 }
 
@@ -110,6 +113,7 @@ func EditPost(c *fiber.Ctx) error {
 	}
 
 	database.DB.Save(&newPost)
+	database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&newPost)
 	return c.JSON(newPost)
 }
 

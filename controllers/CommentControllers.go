@@ -19,11 +19,12 @@ import (
 //Delete comment
 
 func GetCommentByPost(c *fiber.Ctx) error {
-	id := c.Params("id") // Post id
+	id, _ := strconv.Atoi(c.Params("id")) // Post id
 
-	post := &models.Post{}
-	err := database.DB.Find("id = ?", id).First(post).Error
-
+	post := &models.Post{
+		Id: uint(id),
+	}
+	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&post).Error
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "Could not get the comment"})
@@ -35,16 +36,13 @@ func GetCommentByPost(c *fiber.Ctx) error {
 }
 
 func GetCommentById(c *fiber.Ctx) error {
-	CommentId := c.Params("commentId")
+	CommentId, _ := strconv.Atoi(c.Params("commentId"))
 
-	comment := models.Comment{}
-	err := database.DB.Find("id = ?", CommentId).First(&comment).Error
-	if err != nil {
-		c.Status(http.StatusBadRequest).JSON(
-			&fiber.Map{"message": "could not get comment"},
-		)
-		return err
+	comment := models.Comment{
+		Id: uint(CommentId),
 	}
+
+	database.DB.Preload("Posts").Preload("User").Find(&comment)
 
 	return c.JSON(comment)
 }
@@ -68,39 +66,42 @@ func CreateComment(c *fiber.Ctx) error {
 			"message": "Error creating comment",
 		})
 	}
-	post.Comments = append(post.Comments, comment)
 	comment.UserId = uint(userId)
 	comment.PostId = uint(postId)
-	comment.Post = post
-	comment.User = currUser
 
 	database.DB.Create(&comment)
-	database.DB.Save(&post)
 	return c.JSON(comment)
 }
 
 func EditComment(c *fiber.Ctx) error {
-	commentId := c.Params("commentId")
+	commentId, _ := c.ParamsInt("commentId")
 
-	comment := models.Comment{}
-	database.DB.Where("id = ?", commentId).First(&comment)
+	comment := models.Comment{
+		Id: uint(commentId),
+	}
+	database.DB.Find(&comment)
 
-	updatedComment := models.Comment{}
+	updatedComment := models.Comment{
+		Id: uint(commentId),
+	}
 	err := c.BodyParser(&updatedComment)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"message": "Error parsing the comment",
 		})
 	}
-	comment.Content = updatedComment.Content
+	database.DB.Model(&updatedComment).Updates(&updatedComment)
 
-	database.DB.Save(&comment)
-	return c.JSON(comment)
+	database.DB.Save(&updatedComment)
+	return c.JSON(updatedComment)
 }
 
 func DeleteComment(c *fiber.Ctx) error {
 	currUserId, _ := strconv.Atoi(GetCurrentUserId(c))
-	comment := models.Comment{}
+	commentId, _ := c.ParamsInt("commentId")
+	comment := models.Comment{
+		Id: uint(commentId),
+	}
 	c.BodyParser(&comment)
 	if uint(currUserId) != comment.UserId {
 		return c.JSON(fiber.Map{

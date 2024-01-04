@@ -28,10 +28,10 @@ func Setup(app *fiber.App) {
 	app.Patch("/posts/edit/:id", controllers.EditPost)
 	app.Delete("/posts/:id", controllers.DeletePost)
 
-	app.Get("/comment/:id", controllers.GetCommentByPost)
-	app.Get("/comment/:commentId", controllers.GetCommentById)
+	app.Get("/comment/:PostId", controllers.GetCommentByPost)
+	app.Get("/comment/id/:commentId", controllers.GetCommentById)
 	app.Post("/comment/create/:postId", controllers.CreateComment)
-	app.Patch("/comment/update/:commentId", controllers.EditComment)
-	app.Delete("/comment/delete", controllers.DeleteComment)
+	app.Patch("/comment/edit/:commentId", controllers.EditComment)
+	app.Delete("/comment/delete/:commentId", controllers.DeleteComment)
 
 }
