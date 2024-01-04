@@ -60,5 +60,5 @@ func (s *postSorter) Swap(i, j int) {
 	s.data[i], s.data[j] = s.data[j], s.data[i]
 }
 func (s *postSorter) Less(i, j int) bool {
-	return s.data[i].Likes < s.data[j].Likes
+	return s.data[i].Likes > s.data[j].Likes
 }

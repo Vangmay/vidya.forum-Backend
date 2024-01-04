@@ -17,6 +17,7 @@ type Post struct {
 	Comments []Comment `json:"comments" gorm:"foreignKey:PostId"`
 	Likes    int       `json:"likes"`
 	Tag      string    `json:"tag"`
+	IsEdited bool      `isEdited`
 }
 
 // A Post has many comments

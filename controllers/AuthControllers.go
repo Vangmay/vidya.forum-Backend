@@ -8,7 +8,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
-	"github.com/vangmay/cvwo-backend/controllers"
 	"github.com/vangmay/cvwo-backend/database"
 	"github.com/vangmay/cvwo-backend/models"
 	"golang.org/x/crypto/bcrypt"
@@ -184,7 +183,7 @@ func Edit(c *fiber.Ctx) error {
 	err := c.BodyParser(&edits)
 	fmt.Println(err)
 
-	userId := controllers.GetCurrentUserId(c)
+	userId := GetCurrentUserId(c)
 	userProfile := models.User{}
 	database.DB.Where("id = ?", userId).First(&userProfile)
 

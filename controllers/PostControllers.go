@@ -72,6 +72,7 @@ func CreatePost(c *fiber.Ctx) error {
 	newPost.UserId = author.Id
 
 	newPost.User = author
+	newPost.IsEdited = false
 
 	database.DB.Preload("users").Create(&newPost)
 
@@ -105,6 +106,7 @@ func EditPost(c *fiber.Ctx) error {
 	newPost.Content = edits.Content
 	newPost.Tag = edits.Tag
 	newPost.User = author
+	newPost.IsEdited = true
 
 	if err != nil {
 		return c.JSON(fiber.Map{

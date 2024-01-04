@@ -6,11 +6,11 @@
 
 - Email is not getting updated (DONE)
 
-- When sending get request to get all posts, every post is not getting preloaded with the comments, that can be a problem. Also change it so that id is in descending order so latest posts are visible first. Fix it in controllers.GetAllPosts.
+- When sending get request to get all posts, every post is not getting preloaded with the comments, that can be a problem. Also change it so that id is in descending order so latest posts are visible first. Fix it in controllers.GetAllPosts. (DONE)
 
-- Add functionality to see if post has been edited or not
+- Add functionality to see if post has been edited or not (DONE)
 
-- Getting most popular posts gives post in ascending order, i need descending
+- Getting most popular posts gives post in ascending order, i need descending (DONE)
 
 - Similarly to the previous issue, getting post by tags give posts in ascending order
 
