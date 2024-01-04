@@ -14,10 +14,8 @@ import (
 )
 
 type EditRequest struct {
-	UserName        string `json:"username"`
-	Email           string `json:"email"`
-	Profile_picture string `json: "profilePic"`
-	Bio             string `json: "bio"`
+	UserName string `json:"username"`
+	Email    string `json:"email"`
 }
 
 const SECRETKEY = "secret"
@@ -188,6 +186,7 @@ func Edit(c *fiber.Ctx) error {
 	database.DB.Where("id = ?", id).First(&user)
 
 	user.UserName = edits.UserName
+	user.Email = edits.Email
 	database.DB.Save(&user)
 
 	c.JSON(user)

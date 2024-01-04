@@ -5,7 +5,6 @@ type User struct {
 	UserName string `gorm:"unique; not null" json:"userName"`
 	Email    string `gorm:"unique; not null" json:"email"`
 	Password []byte `gorm:"not null" json:"-"`
-	Likes    string `json:"likes"`
 	IsAdmin  bool   `json:"isAdmin"`
 }
 
