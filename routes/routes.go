@@ -8,31 +8,31 @@ import (
 func Setup(app *fiber.App) {
 
 	// Authorization and User management Endpoints
-	app.Get("/Auth/user/:id", controllers.GetUserById)
-	app.Get("/Auth/users", controllers.GetUsers)
-	app.Get("/Auth/profile", controllers.User)
-	app.Post("/Auth/register", controllers.Register)
-	app.Post("/Auth/login", controllers.Login)
-	app.Post("/Auth/logout", controllers.Logout)
-	app.Patch("/Auth/Edit/:id", controllers.Edit)
-	app.Delete("/Auth/delete", controllers.Delete)
+	app.Get("/Auth/user/:id", controllers.GetUserById) // Gets user with the same UserId as parameter : "id"
+	app.Get("/Auth/users", controllers.GetUsers)       // Gets all the users
+	app.Get("/Auth/profile", controllers.Profile)      // Gets the struct containing the current logged in user
+	app.Post("/Auth/register", controllers.Register)   // Registers a user
+	app.Post("/Auth/login", controllers.Login)         // Logs a user in
+	app.Post("/Auth/logout", controllers.Logout)       // Logout
+	app.Patch("/Auth/user", controllers.Edit)          // Edits the username, email and password
+	app.Delete("/Auth/delete", controllers.Delete)     // Deletes the profile of the current logged in user
 
 	// Post Endpoints
-	app.Get("/posts", controllers.GetAllPosts)
-	app.Get("/posts/popular", controllers.GetPopularPosts)
-	app.Get("/posts/:tag", controllers.GetPostsByTag)
-	app.Get("/post/:id", controllers.GetPostById)
-	app.Post("/post/create", controllers.CreatePost)
-	app.Patch("/post/edit/:id", controllers.EditPost)
-	app.Delete("/post/:id", controllers.DeletePost)
-	app.Post("/post/like/:id", controllers.LikePost)
-	app.Post("/post/unlike/:id", controllers.UnlikePost)
+	app.Get("/posts", controllers.GetAllPosts)             // Gets all the posts
+	app.Get("/posts/popular", controllers.GetPopularPosts) // Gets all the posts (Sorted by likes)
+	app.Get("/posts/:tag", controllers.GetPostsByTag)      // Gets all the posts based on a tag (Sorted by likes)
+	app.Get("/post/:id", controllers.GetPostById)          // Gets a post based on Id parameter
+	app.Post("/post", controllers.CreatePost)              // Creates a new post
+	app.Patch("/post/:id", controllers.EditPost)           // Edits an existing post
+	app.Delete("/post/:id", controllers.DeletePost)        // Deletes a post
+	app.Post("/post/like/:id", controllers.LikePost)       // Like a post
+	app.Post("/post/unlike/:id", controllers.UnlikePost)   // Unlike a post
 
 	// Comment Endpoints
-	app.Get("/comments/:PostId", controllers.GetCommentByPost)
-	app.Get("/comments/id/:commentId", controllers.GetCommentById)
-	app.Post("/comment/create/:postId", controllers.CreateComment)
-	app.Patch("/comment/edit/:commentId", controllers.EditComment)
-	app.Delete("/comment/delete/:commentId", controllers.DeleteComment)
+	app.Get("/comments/:PostId", controllers.GetCommentByPost)   // Gets all comments present under post with PostId : id
+	app.Get("/comment/:commentId", controllers.GetCommentById)   // Gets comment based on commentId
+	app.Post("/comment/:postId", controllers.CreateComment)      // Creates a new comment
+	app.Patch("/comment/:commentId", controllers.EditComment)    // Edits a comment
+	app.Delete("/comment/:commentId", controllers.DeleteComment) // Deletes a comments
 
 }

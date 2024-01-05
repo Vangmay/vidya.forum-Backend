@@ -8,9 +8,11 @@ type User struct {
 	IsAdmin  bool   `json:"isAdmin"`
 }
 
+// Further considerations: User can have a profile photo and bio
+
 type Post struct {
 	Id       uint      `json:"id"`
-	Content  string    `json:"content"`
+	Body     string    `json:"body"`
 	Title    string    `json:"title"`
 	UserId   uint      `json:"userId"`
 	User     User      `json:"user" gorm:"foreignKey:UserId"`
@@ -20,6 +22,7 @@ type Post struct {
 	IsEdited bool      `isEdited`
 }
 
+// A post can have a single user
 // A Post has many comments
 
 type Comment struct {

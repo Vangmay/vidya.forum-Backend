@@ -9,16 +9,13 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/vangmay/cvwo-backend/database"
 	"github.com/vangmay/cvwo-backend/routes"
-	_ "gorm.io/gorm"
 )
-
-// "github.com/vangmay/cvwo-backend/"
 
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal(err)
-	}
+	} // Load environment variables to connect to database
 	config := &database.Config{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     os.Getenv("DB_PORT"),
@@ -26,8 +23,8 @@ func main() {
 		User:     os.Getenv("DB_USER"),
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 		DBName:   os.Getenv("DB_NAME"),
-	}
-	database.NewConnection(config)
+	} // Create database config
+	database.NewConnection(config) // Migrates the databse
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
@@ -36,7 +33,7 @@ func main() {
 		AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
 	}))
 
-	routes.Setup(app)
+	routes.Setup(app) // Creation of routes
 
-	app.Listen(":8000")
+	app.Listen(":8000") // Server starts to listen
 }

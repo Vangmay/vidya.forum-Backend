@@ -81,9 +81,9 @@ func CreatePost(c *fiber.Ctx) error {
 
 func EditPost(c *fiber.Ctx) error {
 	type EditRequest struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-		Tag     string `json: "tag"`
+		Title string `json:"title"`
+		Body  string `json:"content"`
+		Tag   string `json: "tag"`
 	}
 	// Only title content and tag can
 	// be edited after a post has been created
@@ -103,7 +103,7 @@ func EditPost(c *fiber.Ctx) error {
 	c.BodyParser(&edits)
 
 	newPost.Title = edits.Title
-	newPost.Content = edits.Content
+	newPost.Body = edits.Body
 	newPost.Tag = edits.Tag
 	newPost.User = author
 	newPost.IsEdited = true

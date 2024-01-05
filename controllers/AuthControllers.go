@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type EditRequest struct {
+type EditRequest struct { // This struct contains the layout of an edit request
 	UserName string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json: "password"`
@@ -22,13 +22,27 @@ type EditRequest struct {
 const SECRETKEY = "secret"
 
 func Register(c *fiber.Ctx) error {
-	var data map[string]string
+	/*
+		Body of register request
+		{
+			"username" : "",
+			"email"		: "",
+			"password"	: ""
+		}
 
-	// {
-	// 	"username" :
-	// 	"email" :
-	// 	"password"
-	// } THIS SHOULD BE THE BODY INPUT
+		- Read the INPUT body
+		- Perform uniquiness checks on the username and email
+		- If check fails: send appropriate error message
+		- If check passes : create a user struct and assign proper values from "data"
+		- Use bcrypt to generate a hash
+		- Send database command to create new user
+
+		OUTPUT:
+		- Return JSON containing the user that has been created for acknowledgement
+
+	*/
+
+	var data map[string]string
 
 	err := c.BodyParser(&data)
 
@@ -37,12 +51,10 @@ func Register(c *fiber.Ctx) error {
 	}
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 
-	//Check if a user with same email already exists
-
 	var tempUser models.User
 
+	//Check if a user with same email already exists
 	database.DB.Where("email = ?", data["email"]).First(&tempUser)
-
 	if tempUser.Email == data["email"] {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -50,6 +62,7 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
+	//Check if a user with same username already exists
 	database.DB.Where("user_name = ?", data["username"]).First(&tempUser)
 	if tempUser.UserName == data["username"] {
 		c.Status(fiber.StatusBadRequest)
@@ -62,8 +75,7 @@ func Register(c *fiber.Ctx) error {
 		UserName: data["username"],
 		Email:    data["email"],
 		Password: password,
-
-		IsAdmin: false,
+		IsAdmin:  false,
 	}
 
 	database.DB.Create(&user)
@@ -71,11 +83,25 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	// Body of login request
-	// {
-	// 	"email" :
-	// 	"password" :
-	// }
+	/*
+		INPUT Body of login request
+		{
+			"email" :
+			"password" :
+		}
+		- Read the body
+		- Search for a user in the database with the same email
+		- If user not found => send the relevant message.
+		- If found => Proceed
+		- Hash the password entered by the user and compare to the user we searched. (Done using bcrypt)
+		- Check fails => Send message "Incorrect password"
+		- Check passes => Proceed
+		- Create a new claim which expires in next 24 hours
+		- Use it to generate a token
+		- Create a cookie with the token
+		OUTPUT:
+		- Send a message with acknowledement that login has been sucessfull
+	*/
 
 	var data map[string]string
 
@@ -102,7 +128,8 @@ func Login(c *fiber.Ctx) error {
 			"message": "incorrect password",
 		})
 	}
-	// If the compare and hash password function doesn't return any error, this means the test has been passed
+	// If the compare and hash password function doesn't return any error,
+	// this means the test has been passed
 	// We can proceed forward and assign a few claims
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
@@ -131,11 +158,19 @@ func Login(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
-		"message": "great success",
+		"message": "You have been logged in",
 	})
 
 }
-func User(c *fiber.Ctx) error {
+func Profile(c *fiber.Ctx) error {
+	/*
+		No body, the function can be called with a GET request
+		uses the cookie generated in the previous function to get current user
+		If no user, then returns a message "unauthenticated user"
+		Else gets the current user and sends a json file containing the user details
+		OUTPUT: JSON file with user details
+
+	*/
 	cookie := c.Cookies("jwt")
 
 	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -160,7 +195,13 @@ func User(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
-	// Destroy the cookie by replacing it with a similar cookie which has a value of empty string
+	/*
+			Destroy the cookie created when logging in
+		 	by replacing it with a similar cookie which has a value of empty string
+
+			NO INPUT
+			Output => You have been logged out
+	*/
 	cookie := fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -170,14 +211,30 @@ func Logout(c *fiber.Ctx) error {
 	c.Cookie(&cookie)
 
 	return c.JSON(fiber.Map{
-		"message": "success",
+		"message": "You have been logged out",
 	})
 }
 
 func Edit(c *fiber.Ctx) error {
+	/*
+		Input Body of the PATCH request
+		{
+			"username" : "",
+			"email"	   : "",
+			"password" : "",
+		}
 
-	// user can edit the following values
-	// userName, bio, profilePhoto
+		- Gets the Id of the current user by calling "GetCurrentUserId"
+		- Changes the username, email and password
+		- Calls the save method on DB to save the user.
+		- Outputs the updated user in JSON format.
+
+		Future security update:
+		I can generate another random secret key when registering a user
+		and ask the user to store it in a .txt file,
+		this key can be used to verify the user to ensure the correct user is editing
+		and not someone posing as the user.
+	*/
 	edits := EditRequest{}
 
 	err := c.BodyParser(&edits)
@@ -203,12 +260,21 @@ func Edit(c *fiber.Ctx) error {
 }
 
 func Delete(c *fiber.Ctx) error {
+	/*
+		Internally gets the user who is currently logged in. (To ensure user's can only delete their own profile)
+		Deletes the user
+		Deletes the cookie, forcing the user to log out.
+
+		Output => "User deleted succesfully"
+	*/
+
 	user := models.User{}
-	err := c.BodyParser(&user)
+	userId := GetCurrentUserId(c)
+	err := database.DB.Where("Id = ?", userId).First(&user).Error
 
 	if err != nil {
 		return c.JSON(fiber.Map{
-			"message": "Error deleting user, please check if this user is registered",
+			"message": "Error deleting user, please check if this user is registered or that you are logged in",
 		})
 	}
 	database.DB.Delete(&user)
@@ -227,7 +293,12 @@ func Delete(c *fiber.Ctx) error {
 }
 
 func GetUserById(c *fiber.Ctx) error {
-
+	/*
+		INPUT = "id", passed as a URL parameter
+		- Searches the database for a user with same id
+		- If not found: Outputs a message "Could not find user"
+		- If found: Outputs the user struct in JSON format
+	*/
 	id := c.Params("id")
 
 	user := models.User{}
@@ -243,6 +314,10 @@ func GetUserById(c *fiber.Ctx) error {
 }
 
 func GetUsers(c *fiber.Ctx) error {
+	/*
+		- Gets all the users that are registered
+		- Outputs a slice of user struct in JSON format
+	*/
 	users := &[]models.User{}
 
 	err := database.DB.Find(users).Error
