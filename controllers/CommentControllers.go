@@ -19,18 +19,17 @@ import (
 //Delete comment
 
 func GetCommentByPost(c *fiber.Ctx) error {
-	id, _ := strconv.Atoi(c.Params("id")) // Post id
+	PostId, _ := c.ParamsInt("PostId")
 
-	post := &models.Post{
-		Id: uint(id),
-	}
+	post := &models.Post{Id: uint(PostId)}
+
 	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&post).Error
+
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(
-			&fiber.Map{"message": "Could not get the comment"})
+			&fiber.Map{"Message ": "Could not get the post"})
 		return err
 	}
-
 	c.Status(http.StatusOK).JSON(post.Comments)
 	return nil
 }
@@ -99,10 +98,8 @@ func EditComment(c *fiber.Ctx) error {
 func DeleteComment(c *fiber.Ctx) error {
 	currUserId, _ := strconv.Atoi(GetCurrentUserId(c))
 	commentId, _ := c.ParamsInt("commentId")
-	comment := models.Comment{
-		Id: uint(commentId),
-	}
-	c.BodyParser(&comment)
+	comment := models.Comment{}
+	database.DB.Where("Id = ?", commentId).First(&comment)
 	if uint(currUserId) != comment.UserId {
 		return c.JSON(fiber.Map{
 			"message": "Unauthorized user",

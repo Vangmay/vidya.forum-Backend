@@ -12,8 +12,9 @@
 
 - Getting most popular posts gives post in ascending order, i need descending (DONE)
 
-- Similarly to the previous issue, getting post by tags give posts in ascending order
+- Similarly to the previous issue, getting post by tags give posts in ascending order (DONE)
 
-- Get comments by postId has a bug which causes it to return comments from the wrong post
+- Get comments by postId has a bug which causes it to return comments from the wrong post (DONE)
 
-- Deleting comment by user id gives unauthorized user idk why
+- Deleting comment by comment ID gives unauthorized user idk why
+  (Done)
