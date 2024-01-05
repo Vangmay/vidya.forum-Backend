@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +11,10 @@ import (
 )
 
 func GetCurrentUserId(c *fiber.Ctx) string {
+	/*
+		This is a helper function meant for internal use
+		Cannot be accessed via endpoint
+	*/
 	cookie := c.Cookies("jwt")
 	token, _ := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(SECRETKEY), nil
@@ -20,6 +25,10 @@ func GetCurrentUserId(c *fiber.Ctx) string {
 }
 
 func GetAllPosts(c *fiber.Ctx) error {
+	/*
+		- Preloads the User and Comments field in every post
+		- Outputs an array containing every post
+	*/
 	posts := &[]models.Post{}
 
 	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(posts).Error
@@ -34,6 +43,12 @@ func GetAllPosts(c *fiber.Ctx) error {
 }
 
 func GetPostById(c *fiber.Ctx) error {
+	/*
+		INPUT - Id, Passed as a URL parameter
+		- Searches the database for a post with same Id
+		- Preloads the user and comments
+		- Outputs the post in JSON format
+	*/
 	id := c.Params("id")
 	post := &models.Post{}
 	if id == "" {
@@ -55,58 +70,78 @@ func GetPostById(c *fiber.Ctx) error {
 }
 
 func CreatePost(c *fiber.Ctx) error {
-	database.DB.Debug()
-	userId := GetCurrentUserId(c)
-	author := models.User{}
-	err := database.DB.Where("id = ?", userId).First(&author).Error
-	if err != nil {
-		return c.JSON(fiber.Map{
-			"message": "Cannot fetch post",
-		})
-	}
+	/*
+		INPUT json object
+		{
+			"title": "",
+			"body" : "",
+			"tag" : ""
+		}
+		- Assign the object to newPost
+		- Get current user id
+		- Set it was newPost.UserId
+		- Preload users to populate User
+		- OUTPUT the new post as JSON object
+	*/
+	userId, _ := strconv.Atoi(GetCurrentUserId(c))
 
 	newPost := models.Post{}
 
 	c.BodyParser(&newPost)
 
-	newPost.UserId = author.Id
-
-	newPost.User = author
+	newPost.UserId = uint(userId)
+	newPost.Likes = 0
 	newPost.IsEdited = false
 
-	database.DB.Preload("users").Create(&newPost)
+	database.DB.Create(&newPost)
+	database.DB.Preload("User").First(&newPost)
 
 	return c.JSON(newPost)
 }
 
 func EditPost(c *fiber.Ctx) error {
+	/*
+		INPUT JSON OBJECT, id is received as URL parameter
+		{
+			Title : "",
+			Body : "",
+			Tag : ""
+		}
+		Fetches the current user id
+		Gets the post based on it
+		Checks if the post.UserId == CurrentUserId
+		If no, send unauthenticated
+		If yes, edit the post
+		OUTPUT: Returns the edited post in JSON format
+	*/
 	type EditRequest struct {
 		Title string `json:"title"`
-		Body  string `json:"content"`
+		Body  string `json:"body"`
 		Tag   string `json: "tag"`
 	}
-	// Only title content and tag can
-	// be edited after a post has been created
 
-	//Get user id
-	userId := GetCurrentUserId(c)
-	//
-
-	author := models.User{}
-	database.DB.Where("id = ?", userId).First(&author)
+	//Get current user id
+	userId, _ := strconv.Atoi(GetCurrentUserId(c))
 
 	postId, err := c.ParamsInt("id")
-	newPost := models.Post{}
-	database.DB.Where("id = ?", postId).First(&newPost)
+
+	postToEdit := models.Post{}
+	database.DB.Where("id = ?", postId).First(&postToEdit)
 
 	edits := EditRequest{}
 	c.BodyParser(&edits)
 
-	newPost.Title = edits.Title
-	newPost.Body = edits.Body
-	newPost.Tag = edits.Tag
-	newPost.User = author
-	newPost.IsEdited = true
+	if uint(userId) != postToEdit.UserId {
+		c.Status(fiber.StatusForbidden)
+		return c.JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	postToEdit.Title = edits.Title
+	postToEdit.Body = edits.Body
+	postToEdit.Tag = edits.Tag
+	postToEdit.IsEdited = true
 
 	if err != nil {
 		return c.JSON(fiber.Map{
@@ -114,16 +149,17 @@ func EditPost(c *fiber.Ctx) error {
 		})
 	}
 
-	database.DB.Save(&newPost)
-	database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&newPost)
-	return c.JSON(newPost)
+	database.DB.Save(&postToEdit)
+	database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&postToEdit)
+	return c.JSON(postToEdit)
 }
 
 func DeletePost(c *fiber.Ctx) error {
-	// Get curret user id
+	// Get current user id
 	// Check if the userId matched the userId in post
 	// If Not: Throw unauthenticated error
 	// Else delete the post
+	// Send acknowledgement that post has been deleted
 
 	cookie := c.Cookies("jwt")
 	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -143,7 +179,6 @@ func DeletePost(c *fiber.Ctx) error {
 	database.DB.Where("id = ?", id).First(&currentUser)
 
 	post := models.Post{}
-	posts := &[]models.Post{}
 	PostId := c.Params("id")
 	database.DB.Where("id = ?", PostId).First(&post)
 
@@ -168,7 +203,9 @@ func DeletePost(c *fiber.Ctx) error {
 		return err
 
 	}
-	c.Status(http.StatusOK).JSON(posts)
+	c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Post has been deleated",
+	})
 	return nil
 
 }

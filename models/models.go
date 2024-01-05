@@ -14,11 +14,11 @@ type Post struct {
 	Id       uint      `json:"id"`
 	Body     string    `json:"body"`
 	Title    string    `json:"title"`
+	Tag      string    `json:"tag"`
 	UserId   uint      `json:"userId"`
 	User     User      `json:"user" gorm:"foreignKey:UserId"`
 	Comments []Comment `json:"comments" gorm:"foreignKey:PostId"`
 	Likes    int       `json:"likes"`
-	Tag      string    `json:"tag"`
 	IsEdited bool      `isEdited`
 }
 

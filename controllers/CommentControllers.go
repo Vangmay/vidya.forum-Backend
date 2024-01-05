@@ -9,21 +9,17 @@ import (
 	"github.com/vangmay/cvwo-backend/models"
 )
 
-//GetCommentsByPost
-//GetCommentsByUser
-
-//Create Comment
-
-//Edit comment
-
-//Delete comment
-
 func GetCommentByPost(c *fiber.Ctx) error {
+	/*
+		Receives a PostId as URL Parameter for INPUT
+		Searches for the post
+		Returns all the comments for that specific post
+	*/
 	PostId, _ := c.ParamsInt("PostId")
 
 	post := &models.Post{Id: uint(PostId)}
 
-	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&post).Error
+	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Preload("Comments.Post").Find(&post).Error
 
 	if err != nil {
 		c.Status(http.StatusBadRequest).JSON(
@@ -35,18 +31,31 @@ func GetCommentByPost(c *fiber.Ctx) error {
 }
 
 func GetCommentById(c *fiber.Ctx) error {
+	/*
+		Receives the commentId as URL parameter
+		Outputs the comment in JSON format
+	*/
 	CommentId, _ := strconv.Atoi(c.Params("commentId"))
 
 	comment := models.Comment{
 		Id: uint(CommentId),
 	}
 
-	database.DB.Preload("Posts").Preload("User").Find(&comment)
+	database.DB.Preload("Post").Preload("User").Find(&comment)
 
 	return c.JSON(comment)
 }
 
 func CreateComment(c *fiber.Ctx) error {
+	/*
+		2 inputs
+		JSON OBJECT { content: "" } and postId as url parameter
+
+		- Gets the post and user
+		- Creates a comment
+		- Assigns UserId and PostId
+		- Returns the comment
+	*/
 	postId, _ := strconv.Atoi(c.Params("postId"))
 
 	post := models.Post{}
@@ -69,10 +78,15 @@ func CreateComment(c *fiber.Ctx) error {
 	comment.PostId = uint(postId)
 
 	database.DB.Create(&comment)
+	database.DB.Preload("Post").Preload("User").Preload("Post.User").Find(&comment)
 	return c.JSON(comment)
 }
 
 func EditComment(c *fiber.Ctx) error {
+	/*
+		Receives a json object {"content" : ""}
+		Also recevies commentId as URL parameter
+	*/
 	commentId, _ := c.ParamsInt("commentId")
 
 	comment := models.Comment{
@@ -96,6 +110,11 @@ func EditComment(c *fiber.Ctx) error {
 }
 
 func DeleteComment(c *fiber.Ctx) error {
+
+	/*
+		INPUT: UserId as a URL Parameter
+		Deletes the comment are returns a message
+	*/
 	currUserId, _ := strconv.Atoi(GetCurrentUserId(c))
 	commentId, _ := c.ParamsInt("commentId")
 	comment := models.Comment{}
@@ -106,5 +125,7 @@ func DeleteComment(c *fiber.Ctx) error {
 		})
 	}
 	database.DB.Delete(comment)
-	return nil
+	return c.JSON(fiber.Map{
+		"message": "Delete the comment",
+	})
 }

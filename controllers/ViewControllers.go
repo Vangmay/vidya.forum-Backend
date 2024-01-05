@@ -9,9 +9,12 @@ import (
 	"github.com/vangmay/cvwo-backend/models"
 )
 
-// Get Post based on likes
-// Get post based on a certain tag (Most liked first)
-
+/*
+- Get Post based on likes
+- Get post based on a certain tag (Most liked first)
+Both of these functions first get a list of all the posts
+Then sort them accordingly
+*/
 func GetPopularPosts(c *fiber.Ctx) error {
 	posts := &[]models.Post{}
 
