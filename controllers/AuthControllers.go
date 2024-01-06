@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"time"
 
@@ -72,8 +73,8 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	user := models.User{
-		UserName: data["username"],
-		Email:    data["email"],
+		UserName: strings.ToLower(data["password"]),
+		Email:    strings.ToLower(data["email"]),
 		Password: password,
 		IsAdmin:  false,
 	}

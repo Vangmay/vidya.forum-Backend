@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -188,11 +189,13 @@ func DeletePost(c *fiber.Ctx) error {
 		})
 		return nil
 	}
-
-	if post.UserId != currentUser.Id {
+	fmt.Println(post.User.Id)
+	fmt.Println(currentUser.Id)
+	if post.User.Id != currentUser.Id {
 		c.Status(http.StatusUnauthorized).JSON(&fiber.Map{
 			"message": "Unauthorized to delete the post",
 		})
+		return nil
 	}
 	err = database.DB.Delete(&models.Post{}, PostId).Error
 
