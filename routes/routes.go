@@ -7,17 +7,17 @@ import (
 
 func Setup(app *fiber.App) {
 
-	// Authorization and User management Endpoints
+	// Authorization and User management Endpoints (Everything Works in AUTH)
 	app.Get("/Auth/user/:id", controllers.GetUserById) // Gets user with the same UserId as parameter : "id"
 	app.Get("/Auth/users", controllers.GetUsers)       // Gets all the users
 	app.Get("/Auth/profile", controllers.Profile)      // Gets the struct containing the current logged in user
 	app.Post("/Auth/register", controllers.Register)   // Registers a user
 	app.Post("/Auth/login", controllers.Login)         // Logs a user in
 	app.Post("/Auth/logout", controllers.Logout)       // Logout
-	app.Patch("/Auth/user", controllers.Edit)          // Edits the username, email and password
-	app.Delete("/Auth/delete", controllers.Delete)     // Deletes the profile of the current logged in user
+	app.Patch("/Auth/profile", controllers.Edit)       // Edits the username, email and password
+	app.Delete("/Auth/profile", controllers.Delete)    // Deletes the profile of the current logged in user
 
-	// Post Endpoints
+	// Post Endpoints (EVERYTHING WORKS AS EXPECTED IN POSTS)
 	app.Get("/posts", controllers.GetAllPosts)             // Gets all the posts
 	app.Get("/posts/popular", controllers.GetPopularPosts) // Gets all the posts (Sorted by likes)
 	app.Get("/posts/:tag", controllers.GetPostsByTag)      // Gets all the posts based on a tag (Sorted by likes)

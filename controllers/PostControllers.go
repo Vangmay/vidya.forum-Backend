@@ -50,13 +50,9 @@ func GetPostById(c *fiber.Ctx) error {
 		- Preloads the user and comments
 		- Outputs the post in JSON format
 	*/
-	id := c.Params("id")
-	post := &models.Post{}
-	if id == "" {
-		c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
-			"message": "id cannot be empty",
-		})
-		return nil
+	id, _ := c.ParamsInt("id")
+	post := &models.Post{
+		Id: uint(id),
 	}
 
 	err := database.DB.Preload("User").Preload("Comments").Preload("Comments.User").Find(&post).Error
@@ -178,6 +174,7 @@ func DeletePost(c *fiber.Ctx) error {
 
 	currentUser := models.User{}
 	database.DB.Where("id = ?", id).First(&currentUser)
+	fmt.Println(currentUser)
 
 	post := models.Post{}
 	PostId := c.Params("id")
@@ -189,9 +186,7 @@ func DeletePost(c *fiber.Ctx) error {
 		})
 		return nil
 	}
-	fmt.Println(post.User.Id)
-	fmt.Println(currentUser.Id)
-	if post.User.Id != currentUser.Id {
+	if post.UserId != currentUser.Id {
 		c.Status(http.StatusUnauthorized).JSON(&fiber.Map{
 			"message": "Unauthorized to delete the post",
 		})

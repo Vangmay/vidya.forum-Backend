@@ -51,11 +51,13 @@ func Register(c *fiber.Ctx) error {
 		return err
 	}
 	password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
-
-	var tempUser models.User
+	data["email"] = strings.ToLower(data["email"])
+	data["username"] = strings.ToLower(data["username"])
+	tempUser := models.User{}
 
 	//Check if a user with same email already exists
 	database.DB.Where("email = ?", data["email"]).First(&tempUser)
+	fmt.Println(tempUser)
 	if tempUser.Email == data["email"] {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -65,6 +67,7 @@ func Register(c *fiber.Ctx) error {
 
 	//Check if a user with same username already exists
 	database.DB.Where("user_name = ?", data["username"]).First(&tempUser)
+	fmt.Println(tempUser)
 	if tempUser.UserName == data["username"] {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
@@ -73,8 +76,8 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	user := models.User{
-		UserName: strings.ToLower(data["password"]),
-		Email:    strings.ToLower(data["email"]),
+		UserName: data["username"],
+		Email:    data["email"],
 		Password: password,
 		IsAdmin:  false,
 	}
@@ -105,13 +108,14 @@ func Login(c *fiber.Ctx) error {
 	*/
 
 	var data map[string]string
-
 	err := c.BodyParser(&data)
 
 	if err != nil {
 		return err
 	}
 
+	data["email"] = strings.ToLower(data["email"])
+	data["username"] = strings.ToLower(data["username"])
 	var user models.User
 
 	database.DB.Where("email = ?", data["email"]).First(&user)
@@ -237,6 +241,8 @@ func Edit(c *fiber.Ctx) error {
 		and not someone posing as the user.
 	*/
 	edits := EditRequest{}
+	edits.UserName = strings.ToLower(edits.UserName)
+	edits.Email = strings.ToLower(edits.Email)
 
 	err := c.BodyParser(&edits)
 	fmt.Println(err)
@@ -250,6 +256,29 @@ func Edit(c *fiber.Ctx) error {
 			"message": "Could not update user",
 		})
 	}
+	tempUser := models.User{}
+
+	//Check if a user with same email already exists
+
+	database.DB.Where("email = ? AND Id != ?", edits.Email, userId).First(&tempUser)
+	fmt.Println(tempUser)
+	if tempUser.Email == edits.Email {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "A user has already registered using this email",
+		})
+	}
+
+	//Check if a user with same username already exists
+	database.DB.Where("user_name = ?", edits.UserName).First(&tempUser)
+	fmt.Println(tempUser)
+	if tempUser.UserName == edits.UserName {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"message": "A user has already registered using this username",
+		})
+	}
+
 	newPassword, _ := bcrypt.GenerateFromPassword([]byte(edits.Password), 14)
 	userProfile.UserName = edits.UserName
 	userProfile.Email = edits.Email

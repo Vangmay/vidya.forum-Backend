@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	Id       uint   `json:"id"`
+	Id       uint   `gorm:"autoIncrement; primaryKey" json:"id"`
 	UserName string `gorm:"unique; not null" json:"userName"`
 	Email    string `gorm:"unique; not null" json:"email"`
 	Password []byte `gorm:"not null" json:"-"`
@@ -11,7 +11,7 @@ type User struct {
 // Further considerations: User can have a profile photo and bio
 
 type Post struct {
-	Id       uint      `json:"id"`
+	Id       uint      `json:"id" gorm:"autoIncrement"`
 	Body     string    `json:"body"`
 	Title    string    `json:"title"`
 	Tag      string    `json:"tag"`
@@ -26,7 +26,7 @@ type Post struct {
 // A Post has many comments
 
 type Comment struct {
-	Id      uint   `json:"id"`
+	Id      uint   `json:"id" gorm:"autoIncrement"`
 	Content string `json:"content"`
 	PostId  uint   `json:"postId"`
 	Post    Post   `json:"post" gorm:"foreignKey:PostId"`

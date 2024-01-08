@@ -17,3 +17,6 @@ Todo
 - Complete CHECK 3
 - Make code prettier
 - Document API
+
+- Users are able to perform CRUD Operations on their profiles
+- Users are able to perform CRUD operations on their posts
