@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
-
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -59,9 +59,9 @@ func Register(c *fiber.Ctx) error {
 	database.DB.Where("email = ?", data["email"]).First(&tempUser)
 	fmt.Println(tempUser)
 	if tempUser.Email == data["email"] {
-		c.Status(fiber.StatusBadRequest)
+		c.Status(http.StatusConflict)
 		return c.JSON(fiber.Map{
-			"message": "A user has already registered using this email",
+			"EmailConflict": "A user has already registered using this email",
 		})
 	}
 
@@ -69,9 +69,9 @@ func Register(c *fiber.Ctx) error {
 	database.DB.Where("user_name = ?", data["username"]).First(&tempUser)
 	fmt.Println(tempUser)
 	if tempUser.UserName == data["username"] {
-		c.Status(fiber.StatusBadRequest)
+		c.Status(http.StatusConflict)
 		return c.JSON(fiber.Map{
-			"message": "A user has already registered using this username",
+			"UsernameConflict": "A user has already registered using this username",
 		})
 	}
 
@@ -123,14 +123,14 @@ func Login(c *fiber.Ctx) error {
 	if user.Id == 0 {
 		c.Status(fiber.StatusNotFound)
 		return c.JSON(fiber.Map{
-			"message": "User not found",
+			"UserNotFound": "User not found",
 		})
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
 		c.Status(fiber.StatusBadRequest)
 		return c.JSON(fiber.Map{
-			"message": "incorrect password",
+			"WrongPassword": "incorrect password",
 		})
 	}
 	// If the compare and hash password function doesn't return any error,
@@ -145,9 +145,9 @@ func Login(c *fiber.Ctx) error {
 	token, err := claims.SignedString([]byte(SECRETKEY))
 
 	if err != nil {
-		c.Status(fiber.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return c.JSON(fiber.Map{
-			"message": "Could not login",
+			"UnableToLogin": "Could not login",
 		})
 	}
 
@@ -161,10 +161,8 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	c.Cookie(&cookie)
-
-	return c.JSON(fiber.Map{
-		"message": "You have been logged in",
-	})
+	c.Status(http.StatusOK)
+	return c.JSON(user)
 
 }
 func Profile(c *fiber.Ctx) error {

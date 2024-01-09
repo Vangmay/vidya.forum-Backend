@@ -202,7 +202,7 @@ func DeletePost(c *fiber.Ctx) error {
 
 	}
 	c.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "Post has been deleated",
+		"message": "Post has been deleted",
 	})
 	return nil
 
