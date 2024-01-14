@@ -167,6 +167,7 @@ func DeletePost(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "unauthenticated user",
 			"Name":    "",
+			"Error":   err.Error(),
 		})
 	}
 	claims := token.Claims.(*jwt.StandardClaims)
@@ -178,7 +179,7 @@ func DeletePost(c *fiber.Ctx) error {
 
 	post := models.Post{}
 	PostId := c.Params("id")
-	database.DB.Where("id = ?", PostId).First(&post)
+	database.DB.Preload("Comments").Where("id = ?", PostId).First(&post)
 
 	if PostId == "" {
 		c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
@@ -192,6 +193,19 @@ func DeletePost(c *fiber.Ctx) error {
 		})
 		return nil
 	}
+	// Delete all commments of the post
+	for _, comment := range post.Comments {
+		err := database.DB.Delete(&models.Comment{}, comment.Id).Error
+		if err != nil {
+			c.Status(http.StatusBadRequest).JSON(&fiber.Map{
+				"message": "could not delete comment",
+			})
+			return err
+		}
+	}
+
+	//Find all comments related to the post and delete it
+
 	err = database.DB.Delete(&models.Post{}, PostId).Error
 
 	if err != nil {

@@ -174,6 +174,12 @@ func Profile(c *fiber.Ctx) error {
 		OUTPUT: JSON file with user details
 
 	*/
+	emptyUser := models.User{
+		Id:       0,
+		UserName: "",
+		Email:    "",
+		IsAdmin:  false,
+	}
 	cookie := c.Cookies("jwt")
 
 	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -182,10 +188,7 @@ func Profile(c *fiber.Ctx) error {
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "unauthenticated user",
-			"Name":    "",
-		})
+		return c.JSON(emptyUser)
 	}
 
 	claims := token.Claims.(*jwt.StandardClaims)
