@@ -1,6 +1,6 @@
 module github.com/vangmay/cvwo-backend
 
-go 1.21.5
+go 1.21.0
 
 require (
 	gorm.io/driver/postgres v1.5.4
