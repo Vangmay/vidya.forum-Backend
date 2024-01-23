@@ -18,6 +18,7 @@ type EditRequest struct { // This struct contains the layout of an edit request
 	UserName string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json: "password"`
+	Bio      string `json:bio`
 }
 
 const SECRETKEY = "secret"
@@ -78,6 +79,7 @@ func Register(c *fiber.Ctx) error {
 	user := models.User{
 		UserName: data["username"],
 		Email:    data["email"],
+		Bio:      "",
 		Password: password,
 		IsAdmin:  false,
 	}
@@ -284,6 +286,7 @@ func Edit(c *fiber.Ctx) error {
 	userProfile.UserName = edits.UserName
 	userProfile.Email = edits.Email
 	userProfile.Password = newPassword
+	userProfile.Bio = edits.Bio
 	database.DB.Save(&userProfile)
 
 	c.JSON(userProfile)

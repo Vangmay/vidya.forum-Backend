@@ -3,6 +3,7 @@ package models
 type User struct {
 	Id       uint   `gorm:"autoIncrement; primaryKey" json:"id"`
 	UserName string `gorm:"unique; not null" json:"userName"`
+	Bio      string `json:"bio"`
 	Email    string `gorm:"unique; not null" json:"email"`
 	Password []byte `gorm:"not null" json:"-"`
 	IsAdmin  bool   `json:"isAdmin"`

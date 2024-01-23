@@ -18,15 +18,17 @@ func Setup(app *fiber.App) {
 	app.Delete("/Auth/profile", controllers.Delete)    // Deletes the profile of the current logged in user
 
 	// Post Endpoints (EVERYTHING WORKS AS EXPECTED IN POSTS)
-	app.Get("/posts", controllers.GetAllPosts)             // Gets all the posts
-	app.Get("/posts/popular", controllers.GetPopularPosts) // Gets all the posts (Sorted by likes)
-	app.Get("/posts/:tag", controllers.GetPostsByTag)      // Gets all the posts based on a tag (Sorted by likes)
-	app.Get("/post/:id", controllers.GetPostById)          // Gets a post based on Id parameter
-	app.Post("/post", controllers.CreatePost)              // Creates a new post
-	app.Patch("/post/:id", controllers.EditPost)           // Edits an existing post
-	app.Delete("/post/:id", controllers.DeletePost)        // Deletes a post
-	app.Post("/post/like/:id", controllers.LikePost)       // Like a post
-	app.Post("/post/unlike/:id", controllers.UnlikePost)   // Unlike a post
+	app.Get("/posts", controllers.GetAllPosts)               // Gets all the posts
+	app.Get("/posts/popular", controllers.GetPopularPosts)   // Gets all the posts (Sorted by likes)
+	app.Get("/posts/:tag", controllers.GetPostsByTag)        // Gets all the posts based on a tag (Sorted by likes)
+	app.Get("/posts/user/:id", controllers.GetPostsByUser)   // Gets all the posts based on a tag (Sorted by likes)
+	app.Get("/post/:id", controllers.GetPostById)            // Gets a post based on Id parameter
+	app.Post("/post", controllers.CreatePost)                // Creates a new post
+	app.Patch("/post/:id", controllers.EditPost)             // Edits an existing post
+	app.Delete("/post/:id", controllers.DeletePost)          // Deletes a post
+	app.Post("/post/like/:id", controllers.LikePost)         // Like a post
+	app.Post("/post/unlike/:id", controllers.UnlikePost)     // Unlike a post
+	app.Get("/user/Likes/:id", controllers.GetLikesByUserID) // Gets all likes by a user
 
 	// Comment Endpoints
 	app.Get("/comments/:PostId", controllers.GetCommentByPost)   // Gets all comments present under post with PostId : id

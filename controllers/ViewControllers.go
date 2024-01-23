@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -43,6 +44,63 @@ func GetPostsByTag(c *fiber.Ctx) error {
 	sortByLikes(*posts)
 	c.Status(http.StatusOK).JSON(posts)
 	return nil
+}
+
+func GetPostsByUser(c *fiber.Ctx) error {
+	userID := c.Params("id")
+
+	// Convert userID to uint
+	var uid uint
+	if _, err := fmt.Sscan(userID, &uid); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid user ID",
+		})
+	}
+
+	// Fetch posts by user ID from the database
+	var posts []models.Post
+	if err := database.DB.Where("user_id = ?", uid).Find(&posts).Error; err != nil {
+		if err == fiber.ErrNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found or has no posts",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch posts",
+		})
+	}
+
+	// Return the posts in the response
+	return c.JSON(posts)
+}
+
+func GetLikesByUserID(c *fiber.Ctx) error {
+	// Parse user ID from request parameters
+	userID := c.Params("id")
+
+	// Convert userID to uint
+	var uid uint
+	if _, err := fmt.Sscan(userID, &uid); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid user ID",
+		})
+	}
+
+	// Fetch the sum of likes by user ID from the database
+	var likesSum int
+	if err := database.DB.Model(&models.Post{}).Where("user_id = ?", uid).Select("SUM(likes) as likes_sum").Scan(&likesSum).Error; err != nil {
+		if err == fiber.ErrNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found or has no posts with likes",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch likes",
+		})
+	}
+
+	// Return the sum of likes in the response
+	return c.JSON(fiber.Map{"likes_sum": likesSum})
 }
 
 func sortByLikes(data []models.Post) {
