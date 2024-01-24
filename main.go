@@ -27,12 +27,13 @@ func main() {
 	database.NewConnection(config) // Migrates the databse
 
 	app := fiber.New()
-	app.Use(cors.New(cors.Config{
-		AllowCredentials: true,
-		AllowOrigins:     "https://vidya-forum-frontend.vercel.app/",
-		AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
-		AllowMethods:     "GET, POST, PATCH, DELETE, OPTIONS, PUT",
-	}))
+	// app.Use(cors.New(cors.Config{
+	// 	AllowCredentials: true,
+	// 	AllowOrigins:     "https://vidya-forum-frontend.vercel.app/",
+	// 	AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
+	// 	AllowMethods:     "GET, POST, PATCH, DELETE, OPTIONS, PUT",
+	// }))
+	app.Use(cors.New())
 
 	routes.Setup(app) // Creation of routes
 
