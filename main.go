@@ -29,7 +29,7 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
-		AllowOrigins:     "http://137.132.26.28:3000",
+		AllowOrigins:     "https://vidya-forum-frontend.vercel.app/",
 		AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
 		AllowMethods:     "GET, POST, PATCH, DELETE, OPTIONS, PUT",
 	}))
